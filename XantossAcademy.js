@@ -1,4 +1,4 @@
-/* Xantoss Academy v0.7 — question reader. No API keys or automatic answer submission. */
+/* Xantoss Academy v0.8 — question reader. No API keys or automatic answer submission. */
 (() => {
   "use strict";
   window.__xantossAcademyCleanup?.();
@@ -14,23 +14,28 @@
     label{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #2b4264}
     input{width:22px;height:22px;accent-color:#438bff}
     button.action{border:0;border-radius:9px;background:#254b88;color:white;padding:10px 12px;margin:6px 4px 0 0}
-    .answer{position:fixed;left:10px;bottom:14px;z-index:2147483645;width:min(410px,calc(100vw - 20px));padding:12px 14px;border-radius:14px;background:#0b162c;color:#eaf2ff;border:1px solid #5286df;box-shadow:0 6px 24px #0008;font-size:13px;display:none}
+    .answer{position:fixed;left:10px;bottom:90px;z-index:2147483646;width:min(410px,calc(100vw - 20px));padding:12px 14px;border-radius:14px;background:#0b162c;color:#eaf2ff;border:1px solid #5286df;box-shadow:0 6px 24px #0008;font-size:13px;display:none}
     .answer strong{color:#a7caff}.answer p{margin:6px 0;line-height:1.4}.answer button{border:1px solid #5286df;border-radius:8px;background:#20395f;color:white;padding:7px;margin:3px}
     .status{color:#a7caff}.detail{white-space:pre-wrap;max-height:120px;overflow:auto;display:none}
   </style>
   <div class="curtain"><h1>XANTOSS<br>ACADEMY</h1></div>
   <button class="bubble" aria-label="Abrir Xantoss Academy">X</button>
-  <div class="panel"><h2>XANTOSS ACADEMY</h2><p>V0.7 — leitor de questões</p>
+  <div class="panel"><h2>XANTOSS ACADEMY</h2><p>V0.8 — leitor de questões</p>
   <label>Modo Xantoss <input class="mode" type="checkbox" checked></label>
-  <label>Midnight Blue <input class="dark" type="checkbox" checked></label>
+  <label>Midnight Blue <input class="dark" type="checkbox"></label>
   <button class="action close">Fechar</button><button class="action exit">Sair</button></div>
   <section class="answer" aria-live="polite"><strong>RESPOSTA XANTOSS</strong>
   <p class="status">Procurando questão...</p><p class="result">O leitor identifica o conteúdo. A conexão com Jarvis ainda está pendente.</p>
   <button class="inspect">Ver conteúdo identificado</button><button class="copy">Copiar questão</button>
   <p class="detail"></p></section>`;
   const $=s=>shadow.querySelector(s), bubble=$(".bubble"),panel=$(".panel"),answer=$(".answer"),status=$(".status"),detail=$(".detail");
-  const theme=document.createElement("style");theme.textContent=`html.xantoss-academy-dark,html.xantoss-academy-dark body{background:#080f20!important;color:#e5eeff!important}html.xantoss-academy-dark main,html.xantoss-academy-dark article{background:#101d35!important;color:#e5eeff!important}`;document.head.append(theme);
-  let disposed=false,lastSignature="",latest=null,timer=null;const timers=[];
+  const theme=document.createElement("style");theme.textContent=`html.xantoss-academy-dark{color-scheme:dark}html.xantoss-academy-dark body{background:#080f20!important}`;document.head.append(theme);
+  let disposed=false,lastSignature="",latest=null,timer=null;
+  // Keep the answer surface visible in viewport even when host site has stacking contexts.
+  const answerPortal=document.createElement("div");answerPortal.id="xantoss-academy-answer-portal";document.documentElement.append(answerPortal);
+  const answerShadow=answerPortal.attachShadow({mode:"open"});
+  answerShadow.append(shadow.querySelector("style").cloneNode(true),answer);
+  answer.style.position="fixed";answer.style.bottom="90px";answer.style.zIndex="2147483647";const timers=[];
   const defer=(fn,ms)=>timers.push(setTimeout(fn,ms));
   function extract(){
     const main=document.querySelector('main,[role="main"]')||document.body;
@@ -62,7 +67,7 @@
   $(".copy").onclick=async()=>{if(!latest)return;try{await navigator.clipboard.writeText(JSON.stringify(latest,null,2));status.textContent="Questão copiada"}catch{status.textContent="Cópia indisponível neste navegador"}};
   $(".mode").onchange=scan;$(".dark").onchange=scan;
   $(".close").onclick=()=>panel.style.display="none";
-  function cleanup(){disposed=true;clearInterval(timer);timers.forEach(clearTimeout);theme.remove();document.documentElement.classList.remove("xantoss-academy-dark");host.remove();delete window.__xantossAcademyCleanup}
+  function cleanup(){disposed=true;clearInterval(timer);timers.forEach(clearTimeout);theme.remove();answerPortal.remove();document.documentElement.classList.remove("xantoss-academy-dark");host.remove();delete window.__xantossAcademyCleanup}
   $(".exit").onclick=cleanup;window.__xantossAcademyCleanup=cleanup;
   let dragging=false,moved=false;
   bubble.addEventListener("pointerdown",e=>{dragging=true;moved=false;bubble.setPointerCapture(e.pointerId)});
